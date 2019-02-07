@@ -2,12 +2,15 @@
 
 # simulate svn repository
 
-svn_repo=$(realpath project1)
-git_repo=$(realpath git)
+base=$(realpath playground)
+mkdir $base
+
+svn_repo=$(realpath $base/project1)
+git_repo=$(realpath $base/git)
 
 # working copy
-svn_wc=$(realpath wc-project1)
-svn_wc_tmp=$(realpath wc-project1-tmp)
+svn_wc=$(realpath $base/wc-project1)
+svn_wc_tmp=$(realpath $base/wc-project1-tmp)
 
 prefix="some-path"
 
@@ -51,7 +54,7 @@ n=2
 svn_setup() {
 	rm -rf $svn_repo $svn_wc $svn_wc_tmp
 
-
+	cd $base
 	if [ ! -d project1 ]; then
 		svnadmin create project1
 	fi
