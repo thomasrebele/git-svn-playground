@@ -76,6 +76,9 @@ svn_setup() {
 
 	# create branches and commits
 	repeat $n commit trunk
+	branch trunk branches/ignore1
+	repeat $n commit branches/ignore1
+	repeat $n commit trunk
 	branch trunk branches/b1
 	repeat $n commit branches/b1
 	repeat $n commit trunk
@@ -83,10 +86,10 @@ svn_setup() {
 	repeat $n commit branches/b1
 	repeat $n commit branches/b2
 
-	branch trunk branches/ignore1
-	repeat $n commit branches/ignore1
 	branch trunk branches/ignore2
 	repeat $n commit branches/ignore2
+	branch trunk branches/ignore3
+	repeat $n commit branches/ignore3
 }
 
 svn_setup
@@ -100,7 +103,7 @@ svn_remote_branches() {
 
 # import first two SVN branches into git
 (
-	#rm -rf git
+	rm -rf git
 	git svn init --trunk=$prefix/trunk --branches=$prefix/branches --tags=$prefix/tags file://$svn_repo $git_repo
 
 	cd $git_repo
@@ -121,6 +124,18 @@ svn_remote_branches() {
 
 # create a new branch in svn and add some commits
 branch branches/b1 branches/b3
+repeat $n commit branches/b2
+repeat $n commit branches/b3
+
+# 
+(
+	cd $git_repo
+	svn_remote_branches "b1|b2"
+
+	git svn fetch 
+)
+
+repeat $n commit branches/b2
 repeat $n commit branches/b3
 
 # import the new SVN branch into git
