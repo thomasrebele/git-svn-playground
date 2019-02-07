@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# simulate svn repository
+# This script initialize a SVN repository with several branches and imports some of them with git-svn.
+# It allows to practice the import of a big SVN project into git.
 
 base=$(realpath playground)
 mkdir $base
@@ -15,7 +16,8 @@ svn_wc_tmp=$(realpath $base/wc-project1-tmp)
 prefix="some-path"
 
 
-
+# creates a commit in the specified branch
+# usage: <trunk or branches/...>
 commit() {
 	path=$1
 	(( counter++ ))
@@ -30,6 +32,8 @@ commit() {
 	)
 }
 
+# creates a branch
+# usage: <branches/...> <branches/parent_branch or trunk>
 branch() {
 	parent=$1
 	dest=$2
@@ -41,6 +45,8 @@ branch() {
 	)
 }
 
+# repeat a command n times
+# usage: <n> <command...>
 repeat() {
 	number=$1
 	shift
@@ -49,6 +55,7 @@ repeat() {
 	done
 }
 
+# create a svn repository with commits and branches
 counter=0
 n=2
 svn_setup() {
@@ -84,15 +91,17 @@ svn_setup() {
 
 svn_setup
 
+# configure git-svn to only import certain branches
 svn_remote_branches() {
 	branches="$1"
 	git config --replace-all svn-remote.svn.ignore-refs "^refs/remotes/origin/(?!($branches)$).*$"
 	git config --replace-all svn-remote.svn.include-paths "^$prefix/branches/($branches)/.*$"
 }
 
+# import first two SVN branches into git
 (
-	rm -rf git
-	git svn init --trunk=$prefix/trunk --branches=$prefix/branches --tags=$prefix/tags --no-minimize-url file://$svn_repo $git_repo
+	#rm -rf git
+	git svn init --trunk=$prefix/trunk --branches=$prefix/branches --tags=$prefix/tags file://$svn_repo $git_repo
 
 	cd $git_repo
 	svn_remote_branches "b1|b2"
@@ -114,7 +123,7 @@ svn_remote_branches() {
 branch branches/b1 branches/b3
 repeat $n commit branches/b3
 
-# 
+# import the new SVN branch into git
 (
 	cd $git_repo
 	svn_remote_branches "b1|b2|b3"
@@ -122,8 +131,7 @@ repeat $n commit branches/b3
 	git svn fetch 
 )
 
-# update
-
+# checkout the third branch, commit a change, and push it to SVN
 (
 	cd $git_repo
 	git checkout -b b3 origin/b3
