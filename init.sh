@@ -4,16 +4,34 @@
 # It allows to practice the import of a big SVN project into git.
 
 base=$(realpath playground)
-mkdir $base
-
-svn_repo=$(realpath $base/project1)
-git_repo=$(realpath $base/git)
+svn_repo=$base/project1
+git_repo=$base/git
 
 # working copy
-svn_wc=$(realpath $base/wc-project1)
-svn_wc_tmp=$(realpath $base/wc-project1-tmp)
+svn_wc=$base/wc-project1
+svn_wc_tmp=$base/wc-project1-tmp
 
 prefix="some-path"
+
+
+
+
+
+confirm() {
+	read -p "$1 (y/n): " choice
+		case "$choice" in 
+		  y|Y ) return 0;;
+		  n|N ) return 1;;
+		  * ) echo "please enter y or n";;
+		esac
+		return 2
+}
+
+if [ -d "$base" ] && confirm "delete $base?"; then
+	rm -rf $base
+fi
+
+mkdir $base
 
 
 # creates a commit in the specified branch
@@ -25,8 +43,8 @@ commit() {
 	svn co file://$svn_repo/$prefix/$path $svn_wc_tmp
 	(
 		cd $svn_wc_tmp
-		echo "a was $(cat a), setting to $counter"
-		echo "$(date) $counter" > a
+		echo "adding entry $counter to a"
+		echo "$(date) $counter" >> a
 		svn add --force "a"
 		svn commit -m "commit $counter, at $path"
 	)
@@ -40,8 +58,10 @@ branch() {
 	(
 		cd $svn_wc
 		echo "create branch $dest from parent $parent"
-		svn copy $prefix/$parent $prefix/$dest 
-		svn commit -m "create branch $dest from parent $parent"
+		svn copy \
+			file://$svn_repo/$prefix/$parent \
+			file://$svn_repo/$prefix/$dest \
+			-m "create branch $dest from parent $parent"
 	)
 }
 
@@ -98,7 +118,7 @@ svn_setup
 svn_remote_branches() {
 	branches="$1"
 	git config --replace-all svn-remote.svn.ignore-refs "^refs/remotes/origin/(?!($branches)$).*$"
-	git config --replace-all svn-remote.svn.include-paths "^$prefix/branches/($branches)/.*$"
+	git config --replace-all svn-remote.svn.include-paths "^$prefix/trunk/.*|^$prefix/branches/($branches)/.*$"
 }
 
 # import first two SVN branches into git
@@ -124,7 +144,7 @@ svn_remote_branches() {
 
 # create a new branch in svn and add some commits
 branch branches/b1 branches/b3
-repeat $n commit branches/b2
+repeat $n commit branches/b1
 repeat $n commit branches/b3
 
 # 
@@ -135,7 +155,7 @@ repeat $n commit branches/b3
 	git svn fetch 
 )
 
-repeat $n commit branches/b2
+repeat $n commit branches/b1
 repeat $n commit branches/b3
 
 # import the new SVN branch into git
@@ -143,8 +163,15 @@ repeat $n commit branches/b3
 	cd $git_repo
 	svn_remote_branches "b1|b2|b3"
 
-	git svn fetch 
+	echo "\nfetch all"
+	git svn fetch --all -r1
+	echo "\nfetch again"
+	git svn fetch
 )
+
+echo
+echo "counter: $counter"
+echo
 
 # checkout the third branch, commit a change, and push it to SVN
 (
