@@ -16,7 +16,7 @@ commit() {
 	path=$1
 	(( counter++ ))
 	rm -rf $svn_wc_tmp
-	svn co file://$svn_repo/$prefix/$path $svn_wc_tmp
+	svn co file://$svn_repo/${prefix}$path $svn_wc_tmp
 	(
 		cd $svn_wc_tmp
 		echo "adding entry $counter to a"
@@ -35,8 +35,8 @@ branch() {
 		cd $svn_wc
 		echo "create branch $dest from parent $parent"
 		svn copy \
-			file://$svn_repo/$prefix/$parent \
-			file://$svn_repo/$prefix/$dest \
+			file://$svn_repo/${prefix}$parent \
+			file://$svn_repo/${prefix}$dest \
 			-m "create branch $dest from parent $parent"
 	)
 }
@@ -63,7 +63,7 @@ svn_setup() {
 	svn co "file://$svn_repo" "$svn_wc"
 	(
 		cd "$svn_wc"
-		svn mkdir --parents $prefix/trunk $prefix/tags $prefix/branches
+		svn mkdir --parents ${prefix}trunk ${prefix}tags ${prefix}branches
 		svn commit -m"Creating basic directory structure"
 	)
 }
@@ -94,6 +94,6 @@ svn_example_commits() {
 svn_remote_branches() {
 	branches="$1"
 	git config --replace-all svn-remote.svn.ignore-refs "^refs/remotes/origin/(?!($branches)$).*$"
-	git config --replace-all svn-remote.svn.include-paths "^$prefix/trunk/.*|^$prefix/branches/($branches)/.*$"
+	git config --replace-all svn-remote.svn.include-paths "^${prefix}trunk/.*|^${prefix}branches/($branches)/.*$"
 }
 

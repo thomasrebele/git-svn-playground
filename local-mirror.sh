@@ -11,7 +11,8 @@ svn_mirror="$base/project1_mirror"
 # working copy
 svn_wc=$base/wc-project1
 svn_wc_tmp=$base/wc-project1-tmp
-prefix="some-path"
+#prefix="some-path/"
+prefix=""
 
 
 
@@ -27,10 +28,10 @@ cd "$base"
 
 # create a svn repository with commits and branches
 counter=0
-n=1
+n=2
 svn_setup
-svn_example_commits $n
 
+commit trunk
 
 (
 	cd "$base"
@@ -46,14 +47,22 @@ svn_example_commits $n
 	svnsync sync "file://$svn_mirror"
 )
 
+uuid_repo=$(svnlook uuid "$svn_repo")
+uuid_mirror=$(svnlook uuid "$svn_mirror")
+
+echo "uuid repo: $uuid_repo"
+echo "uuid mirror: $uuid_mirror"
+
 # import first two SVN branches into git
 (
 	rm -rf git
-	git svn init --trunk=$prefix/trunk --branches=$prefix/branches --tags=$prefix/tags "file://$svn_mirror" $git_repo
+	git svn init --trunk=${prefix}trunk --branches=${prefix}branches --tags=${prefix}tags "file://$svn_mirror" $git_repo
 
 	cd $git_repo
 	git config svn.pushmergeinfo true
-	git config svn-remote.svn.useSvnsyncProps true
+	# git config svn-remote.svn.useSvnsyncProps true
+	git config svn-remote.svn.rewriteRoot "file://$svn_repo"
+	git config svn-remote.svn.rewriteUUID "$uuid_repo"
 
 	svn_remote_branches "b1|b2"
 
