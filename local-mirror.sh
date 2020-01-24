@@ -27,7 +27,7 @@ cd "$base"
 
 # create a svn repository with commits and branches
 counter=0
-n=2
+n=1
 svn_setup
 svn_example_commits $n
 
@@ -42,7 +42,7 @@ svn_example_commits $n
 	chmod 755 hooks/pre-revprop-change
 
 	# svnsync init "file://$svn_mirror" "file://$svn_repo"
-	svnsync init "file://$(realpath .)" "file://$(realpath ../project1)"
+	svnsync init "file://$(realpath .)" "file://$(realpath ../project1)/$prefix"
 	svnsync sync "file://$svn_mirror"
 )
 
@@ -52,6 +52,9 @@ svn_example_commits $n
 	git svn init --trunk=$prefix/trunk --branches=$prefix/branches --tags=$prefix/tags "file://$svn_mirror" $git_repo
 
 	cd $git_repo
+	git config svn.pushmergeinfo true
+	git config svn-remote.svn.useSvnsyncProps true
+
 	svn_remote_branches "b1|b2"
 
 	echo ""
