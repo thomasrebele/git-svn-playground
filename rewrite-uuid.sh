@@ -54,11 +54,11 @@ echo "uuid mirror: $uuid_mirror"
 
 (
 	rm -rf git
-	git svn init --stdlayout "file://$svn_repo" $git_repo
+	git svn init --stdlayout "file://$svn_mirror" $git_repo
 
 	cd $git_repo
 	git config svn.pushmergeinfo true
-	#git config svn-remote.svn.useSvnsyncProps true
+	git config svn-remote.svn.useSvnsyncProps true
 	# git config svn-remote.svn.rewriteRoot "file://$svn_repo"
 	# git config svn-remote.svn.rewriteUUID "$uuid_repo"
 
